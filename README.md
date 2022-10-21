@@ -1,0 +1,2 @@
+# CloudflareSpeedTestDDNS
+使用CloudflareSpeedTest工具优选IP后自动DDNS到Cloudflare
