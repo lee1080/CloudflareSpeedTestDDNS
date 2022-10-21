@@ -1,0 +1,126 @@
+#!/bin/sh
+#版本：V1.2
+#x86openWRT安装jq扩展地址：https://mirrors.tuna.tsinghua.edu.cn/openwrt/releases/21.02.2/packages/x86_64/packages/jq_1.6-1_x86_64.ipk
+#其他linux请自行安装
+
+ipv4Regex="((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])"
+proxy="false"
+
+#判断工作模式
+if [ "$IP_ADDR" = "ipv6" ] ; then
+    if [ ! -f "ipv6.txt" ]; then
+        echo "当前工作模式为ipv6，但该目录下没有【ipv6.txt】，请配置【ipv6.txt】。下载地址：https://github.com/XIU2/CloudflareSpeedTest/releases";
+        exit 2;
+        else
+        echo "当前工作模式为ipv6";
+    fi
+    else
+    echo "当前工作模式为ipv4";
+fi
+
+#读取配置文件中的客户端
+if  [ "$clien" = "6" ] ; then
+	CLIEN=bypass
+elif  [ "$clien" = "5" ] ; then
+		CLIEN=openclash
+elif  [ "$clien" = "4" ] ; then
+	CLIEN=clash
+elif  [ "$clien" = "3" ] ; then
+		CLIEN=shadowsocksr
+elif  [ "$clien" = "2" ] ; then
+			CLIEN=passwall2
+			else
+			CLIEN=passwall
+fi
+
+#判断是否停止科学上网服务
+if [ "$pause" = "false" ] ; then
+	echo "按要求未停止科学上网服务"
+else
+	/etc/init.d/$CLIEN stop
+	echo "已停止$CLIEN";
+fi
+
+#判断是否配置测速地址 
+if [[ "$CFST_URL" == http* ]] ; then
+	CFST_URL_R="-url $CFST_URL"
+else
+	CFST_URL_R=""
+fi
+
+
+if [ "$IP_ADDR" = "ipv6" ] ; then
+    #开始优选IPv6
+    ./CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -f ipv6.txt -ipv6
+    else
+    #开始优选IPv4
+    ./CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P 
+fi
+ipAddr=$(sed -n "2,1p" result.csv | awk -F, '{print $1}')
+#开始DDNS
+if [[ $ipAddr =~ $ipv4Regex ]]; then
+    recordType="A";
+else
+    recordType="AAAA";
+fi
+
+listDnsApi="https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=${recordType}&name=${hostname}"
+createDnsApi="https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records"
+
+res=$(curl -s -X GET "$listDnsApi" -H "X-Auth-Email:$x_email" -H "X-Auth-Key:$api_key" -H "Content-Type:application/json")
+resSuccess=$(echo "$res" | jq -r ".success")
+
+if [[ $resSuccess != "true" ]]; then
+    echo "登陆错误";
+            #延迟10s后重启代理
+	sleep 10s
+	if [ "$pause" = "false" ] ; then
+		echo "按要求未重启科学上网服务";
+	else
+		/etc/init.d/$CLIEN restart
+		echo "已重启$CLIEN";
+	fi
+    exit 1;
+fi
+
+recordId=$(echo "$res" | jq -r ".result[0].id")
+recordIp=$(echo "$res" | jq -r ".result[0].content")
+
+if [[ $recordIp = "$ipAddr" ]]; then
+    echo "nochg";
+    exit 0;
+fi
+
+if [[ $recordId = "null" ]]; then
+    # Record not exists
+    res=$(curl -s -X POST "$createDnsApi" -H "X-Auth-Email:$x_email" -H "X-Auth-Key:$api_key" -H "Content-Type:application/json" --data "{\"type\":\"$recordType\",\"name\":\"$hostname\",\"content\":\"$ipAddr\",\"proxied\":$proxy}")
+else
+    # Record exists
+    updateDnsApi="https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${recordId}";
+    res=$(curl -s -X PUT "$updateDnsApi"  -H "X-Auth-Email:$x_email" -H "X-Auth-Key:$api_key" -H "Content-Type:application/json" --data "{\"type\":\"$recordType\",\"name\":\"$hostname\",\"content\":\"$ipAddr\",\"proxied\":$proxy}")
+fi
+
+resSuccess=$(echo "$res" | jq -r ".success")
+
+if [[ $resSuccess = "true" ]]; then
+    echo "成功";
+else
+    echo "登陆错误";
+        #延迟10s后重启代理
+	sleep 10s
+	if [ "$pause" = "false" ] ; then
+		echo "按要求未重启科学上网服务";
+	else
+		/etc/init.d/$CLIEN restart
+		echo "已重启$CLIEN";
+	fi
+fi
+
+#延迟10s后重启代理
+sleep 10s
+if [ "$pause" = "false" ] ; then
+	echo "按要求未重启科学上网服务";
+else
+	/etc/init.d/$CLIEN restart
+	echo "已重启$CLIEN";
+fi
