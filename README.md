@@ -3,7 +3,7 @@
 
 ## 更新日志 v2.0
 ### 添加了多域名支持
-可以在hostname中填入多个域名。使用CloudflareSpeedTest工具得出优选IP列表后，脚本支持依次从速度最快的ip开始DDNS，域名数量可更具自己需求填写。
+可以在hostname中填入多个域名。使用[CloudflareSpeedTest](https://github.com/XIU2/CloudflareSpeedTest)工具得出优选IP列表后，脚本支持依次从速度最快的ip开始DDNS，域名数量可更具自己需求填写。
 ### 优化科学上网插件重启时机
 
 ## 原理
