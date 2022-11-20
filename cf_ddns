@@ -1,5 +1,7 @@
 #!/bin/sh
-#版本：V2.0
+##版本：V2.1
+	#新功能，支持多域名依次DDNS优选列表ip
+	#适配XIU2/CloudflareSpeedTest v2.1.0 修改ipv6测速策略
 ##使用脚本需要安装jq
 	#x86openWRT安装jq扩展地址：https://mirrors.tuna.tsinghua.edu.cn/openwrt/releases/21.02.2/packages/x86_64/packages/jq_1.6-1_x86_64.ipk
 	#其他linux请自行安装
@@ -59,7 +61,7 @@ fi
 
 if [ "$IP_ADDR" = "ipv6" ] ; then
     #开始优选IPv6
-    ./CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -f ipv6.txt -ipv6
+    ./CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -f ipv6.txt
     else
     #开始优选IPv4
     ./CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P 
