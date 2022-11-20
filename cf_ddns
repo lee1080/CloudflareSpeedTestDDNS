@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ##版本：V2.1
 	#新功能，支持多域名依次DDNS优选列表ip
 	#适配XIU2/CloudflareSpeedTest v2.1.0 修改ipv6测速策略
