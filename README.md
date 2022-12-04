@@ -4,7 +4,7 @@
 ## 更新日志
 ### v2.1.1 
 #### 新功能，支持更新优选完毕后推送至TG，再也不怕脚本没有成功运行了。
-#### 新增openwrt专用cf_RE.sh文件，运行cf_RE.sh即可在openwrt安装jq和timeout两个扩展。
+#### 新增openwrt专用`cf_RE.sh`文件，运行`cf_RE.sh`即可在openwrt安装`jq`和`timeout`两个扩展。
 
 ### v2.1 
 #### 适配XIU2/CloudflareSpeedTest [v2.1.0](https://github.com/XIU2/CloudflareSpeedTest/releases/tag/v2.1.0) 修改ipv6测速策略
