@@ -2,14 +2,17 @@
 使用CloudflareSpeedTest工具优选IP后自动DDNS到Cloudflare
 
 ## 更新日志
-### v2.1.1 新功能，支持更新优选完毕后推送至TG，再也不怕脚本没有成功运行了。
-###        新增openwrt专用cf_RE.sh文件，运行cf_RE.sh即可在openwrt安装jq和timeout两个扩展。
+### v2.1.1 
+#### 新功能，支持更新优选完毕后推送至TG，再也不怕脚本没有成功运行了。
+#### 新增openwrt专用cf_RE.sh文件，运行cf_RE.sh即可在openwrt安装jq和timeout两个扩展。
 
-### v2.1 适配XIU2/CloudflareSpeedTest [v2.1.0](https://github.com/XIU2/CloudflareSpeedTest/releases/tag/v2.1.0) 修改ipv6测速策略
+### v2.1 
+#### 适配XIU2/CloudflareSpeedTest [v2.1.0](https://github.com/XIU2/CloudflareSpeedTest/releases/tag/v2.1.0) 修改ipv6测速策略
 
-### v2.0 添加了多域名支持
+### v2.0 
+#### 添加了多域名支持
 可以在hostname中填入多个域名。使用[CloudflareSpeedTest](https://github.com/XIU2/CloudflareSpeedTest)工具得出优选IP列表后，脚本支持依次从速度最快的ip开始DDNS，域名数量可更具自己需求填写。
-### 优化科学上网插件重启时机
+#### 优化科学上网插件重启时机
 
 ## 原理
 使用Cloudflare的API，将CloudflareSpeedTest工具优选到的最快IP，自动更新到指定域名上。
