@@ -1,6 +1,9 @@
 # CloudflareSpeedTestDDNS
 使用CloudflareSpeedTest工具优选IP后自动DDNS到Cloudflare
 
+## Docker运行
+https://hub.docker.com/r/lee1080/cfstddns
+
 ## 更新日志
 ### v2.1.1 
 #### 新功能，支持更新优选完毕后推送至TG，再也不怕脚本没有成功运行了。
