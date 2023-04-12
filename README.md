@@ -1,10 +1,30 @@
 # CloudflareSpeedTestDDNS
 使用CloudflareSpeedTest工具优选IP后自动DDNS到Cloudflare
 
+### 简易教程
+#### 1.下载并解压脚本（载体可以是openwrt，或其他linux）
+#### 2.填写`config.conf`配置文件
+#### 3.运行脚本
+```bash
+bash start.sh
+```
+
+## ~~[教程过旧，待更新](https://blog.vbar.fun/archives/openwrt-ding-shi-you-xuan-cloudflareip-bing-geng-xin-dao-cloudflare)~~
+~~详细使用教程请参考[详细教程](https://blog.vbar.fun/archives/openwrt-ding-shi-you-xuan-cloudflareip-bing-geng-xin-dao-cloudflare)~~
+
 ## Docker运行
 https://hub.docker.com/r/lee1080/cfstddns
 
 ## 更新日志
+### v2.2
+#### 更改文件结构。
+#### 新增了dnspod DNS服务商支持。
+#### 新增了docker版。docker版不能自动停止路由器的科学插件，请将docker配置到没有科学环境的设备使用。
+#### 增加了pushdeer推送、企业微信推送、Server酱、Synology Chat。
+#### 增加了更新到hosts模式
+
+
+
 ### v2.1.1 
 #### 新功能，支持更新优选完毕后推送至TG，再也不怕脚本没有成功运行了。
 #### 新增openwrt专用`cf_RE.sh`文件，运行`cf_RE.sh`即可在openwrt安装`jq`和`timeout`两个扩展。
@@ -19,9 +39,6 @@ https://hub.docker.com/r/lee1080/cfstddns
 
 ## 原理
 使用Cloudflare的API，将CloudflareSpeedTest工具优选到的最快IP，自动更新到指定域名上。
-
-## [使用教程](https://blog.vbar.fun/archives/openwrt-ding-shi-you-xuan-cloudflareip-bing-geng-xin-dao-cloudflare)
-详细使用教程请参考[详细教程](https://blog.vbar.fun/archives/openwrt-ding-shi-you-xuan-cloudflareip-bing-geng-xin-dao-cloudflare)
 
 ## 存在问题
 .tk .ml .ga .cf .gq这几个域名可能存在无法调用CloudflareAPI。
