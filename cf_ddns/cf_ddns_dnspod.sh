@@ -1,12 +1,12 @@
 #!/bin/bash
-#		版本：V2.2
+#		版本：V2.2.1
 #         用于CloudflareST调用，更新hosts和更新dnspod DNS。
 
 #set -euo pipefail
 ipv4Regex="((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])";
 
-networks=('电信' '联通' '移动' '铁通' '广电' '教育网' '境内' '境外')
-RECORD_LINE=${networks[LINE-1]}
+networks=('默认' '电信' '联通' '移动' '铁通' '广电' '教育网' '境内' '境外')
+RECORD_LINE=${networks[LINE]}
 
 if [ "$IP_TO_DNSPOD" = "1" ]; then
   # 发送请求并获取响应
@@ -166,16 +166,56 @@ while [[ ${x} -lt $num ]]; do
     if [ "$STATUS" == "1" ]; then
       # extract domain ID and record ID from the API response
       RECORD_ID=$(echo "$RESPONSE" | jq -r '.records[0].id')
-      # update DNS record with the current IP address
-      RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Modify -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&record_id=$RECORD_ID&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
+      #判断返回的line_id是否和设置一致
+      declare -A line_id_dict=(
+              ["默认"]="0"
+              ["国内"]="7=0"
+              ["国外"]="3=0"
+              ["电信"]="10=0"
+              ["联通"]="10=1"
+              ["教育网"]="10=2"
+              ["移动"]="10=3"
+              ["百度"]="90=0"
+              ["谷歌"]="90=1"
+              ["搜搜"]="90=4"
+              ["有道"]="90=2"
+              ["必应"]="90=3"
+              ["搜狗"]="90=5"
+              ["奇虎"]="90=6"
+              ["搜索引擎"]="80=0"
+       )
 
-      # check if the update was successful
-      STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
-      if [ "$STATUS" == "1" ]; then
-        echo "$CDNhostname更新成功"
-      else
-        echo "$CDNhostname更新失败"
-      fi
+      CURRENT_RECORD_LINE=$(echo "$RESPONSE" | jq -r '.records[0].line_id')
+
+      for key in "${!line_id_dict[@]}"
+      do
+          if [ "${line_id_dict[$key]}" == "$CURRENT_RECORD_LINE" ]
+          then
+              if [ "$RECORD_LINE" == "$key" ]
+              then
+                  # update DNS record with the current IP address
+                  RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Modify -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&record_id=$RECORD_ID&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
+                  # check if the update was successful
+                  STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
+                  if [ "$STATUS" == "1" ]; then
+                    echo "$CDNhostname更新成功"
+                  else
+                    echo "$CDNhostname更新失败"
+                  fi
+              else
+                  # add DNS record for the domain
+                  RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Create -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
+                  # check if the creation was successful
+                  STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
+                  if [ "$STATUS" == "1" ]; then
+                    echo "$CDNhostname添加成功"
+                  else
+                    echo "$CDNhostname添加失败"
+                  fi
+              fi
+              break
+          fi
+      done
     else
       # add DNS record for the domain
       RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Create -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
@@ -188,7 +228,6 @@ while [[ ${x} -lt $num ]]; do
         echo "$CDNhostname添加失败"
       fi
     fi
-
   fi
 
   ((x++))
