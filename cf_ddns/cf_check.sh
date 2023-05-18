@@ -143,27 +143,37 @@ if [ ! -e "$flag_file" ]; then
 	    fi
 	fi
 # 检测CloudflareST是否安装
+LATEST_URL=https://api.github.com/repos/XIU2/CloudflareSpeedTest/releases/latest
+
+latest_version() {
+  curl --silent $LATEST_URL | grep "tag_name" | cut -d '"' -f 4
+}
+
+VERSION=$(latest_version)
+
 if [ -e ./cf_ddns/tmp/ ]; then
 	rm -rf ./cf_ddns/tmp/
 fi
 if [ ! -f ${CloudflareST} ]; then
-	tag="v2.2.2"
 	get_arch=`uname -m`
 	if [[ $get_arch =~ "x86_64" ]];then
 	    echo "this is x86_64"
-	    wget -P ./cf_ddns/tmp/ ${PROXY}https://github.com/XIU2/CloudflareSpeedTest/releases/download/$tag/CloudflareST_linux_amd64.tar.gz
+	    URL="https://github.com/XIU2/CloudflareSpeedTest/releases/download/$VERSION/CloudflareST_linux_amd64.tar.gz"
+	    wget -P ./cf_ddns/tmp/ ${PROXY}$URL
 	    tar -zxf ./cf_ddns/tmp/CloudflareST_linux_*.tar.gz -C ./cf_ddns/tmp/
 	    mv ./cf_ddns/tmp/CloudflareST ./cf_ddns/tmp/ip.txt ./cf_ddns/tmp/ipv6.txt ./cf_ddns/
 	    rm -rf ./cf_ddns/tmp/
 	elif [[ $get_arch =~ "aarch64" ]];then
 	    echo "this is arm64"
-	    wget -P ./cf_ddns/tmp/ ${PROXY}https://github.com/XIU2/CloudflareSpeedTest/releases/download/$tag/CloudflareST_linux_arm64.tar.gz
+	    URL="https://github.com/XIU2/CloudflareSpeedTest/releases/download/$VERSION/CloudflareST_linux_arm64.tar.gz"
+	    wget -P ./cf_ddns/tmp/ ${PROXY}$URL
 	    tar -zxf ./cf_ddns/tmp/CloudflareST_linux_*.tar.gz -C ./cf_ddns/tmp/
 	    mv ./cf_ddns/tmp/CloudflareST ./cf_ddns/tmp/ip.txt ./cf_ddns/tmp/ipv6.txt ./cf_ddns/
 	    rm -rf ./cf_ddns/tmp/
 	elif [[ $get_arch =~ "mips64" ]];then
 	    echo "this is mips64"
-	    wget -P ./cf_ddns/tmp/ -N ${PROXY}https://github.com/XIU2/CloudflareSpeedTest/releases/download/$tag/CloudflareST_linux_mips64.tar.gz
+	    URL="https://github.com/XIU2/CloudflareSpeedTest/releases/download/$VERSION/CloudflareST_linux_mips64.tar.gz"
+	    wget -P ./cf_ddns/tmp/ ${PROXY}$URL
 	    tar -zxf ./cf_ddns/tmp/CloudflareST_linux_*.tar.gz -C ./cf_ddns/tmp/
 	    mv ./cf_ddns/tmp/CloudflareST ./cf_ddns/tmp/ip.txt ./cf_ddns/tmp/ipv6.txt ./cf_ddns/
 	    rm -rf ./cf_ddns/tmp/
