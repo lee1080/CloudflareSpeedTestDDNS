@@ -46,7 +46,7 @@ case $clien in
   "5") CLIEN=openclash;;
   "4") CLIEN=clash;;
   "3") CLIEN=shadowsocksr;;
-  "2") CLIEN=paswall2;;
+  "2") CLIEN=passwall2;;
   *) CLIEN=passwall;;
 esac
 
