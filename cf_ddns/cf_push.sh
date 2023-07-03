@@ -39,6 +39,26 @@ else
 fi
 ####
 
+##PushPlus推送##
+if [[ -z ${PushPlusToken} ]]; then
+   echo "未配置PushPlus推送"
+else
+   P_message_text=$(sed "$ ! s/$/\\%0A/ " ./cf_ddns/informlog)
+   res=$(timeout 20s curl -s -X POST "http://www.pushplus.plus/send" -d "token=${PushPlusToken}" -d "title=cf优选ip推送" -d "content=${P_message_text}" -d "template=html")
+
+   if [ $? == 124 ];then
+      echo 'PushPlus请求超时，请检查网络是否正常'
+   fi
+
+   resCode=$(echo "$res" | jq -r ".code")
+   if [[ $resCode = 200 ]]; then
+      echo "PushPlus推送成功";
+   else
+      echo "PushPlus推送失败，请检查PushPlusToken是否填写正确";
+   fi
+fi
+####
+
 ##Server 酱##
 if [[ -z ${ServerSendKey} ]]; then
    echo "未配置Server 酱"
