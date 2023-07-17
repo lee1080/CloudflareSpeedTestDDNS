@@ -1,5 +1,4 @@
 #!/bin/bash
-#		版本：V2.2
 #         用于CloudflareSpeedTestDDNS运行环境检测和必要软件初始化安装。
 
 #github下在CloudflareSpeedTest使用ghproxy代理

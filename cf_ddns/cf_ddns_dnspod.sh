@@ -1,5 +1,5 @@
 #!/bin/bash
-#		版本：V2.2.1
+#		版本：V2.3
 #         用于CloudflareST调用，更新hosts和更新dnspod DNS。
 
 #set -euo pipefail
@@ -55,7 +55,7 @@ case $clien in
   "5") CLIEN=openclash;;
   "4") CLIEN=clash;;
   "3") CLIEN=shadowsocksr;;
-  "2") CLIEN=paswall2;;
+  "2") CLIEN=passwall2;;
   *) CLIEN=passwall;;
 esac
 
@@ -69,21 +69,36 @@ fi
 
 #判断是否配置测速地址 
 if [[ "$CFST_URL" == http* ]] ; then
-  CFST_URL_R="-url $CFST_URL";
+  CFST_URL_R="-url $CFST_URL -tp $CFST_TP ";
 else
   CFST_URL_R="";
 fi
 
+# 检查 cfcolo 变量是否为空
+if [[ -n "$cfcolo" ]]; then
+  cfcolo="-cfcolo $cfcolo"
+fi
+
+# 检查 httping_code 变量是否为空
+if [[ -n "$httping_code" ]]; then
+  httping_code="-httping-code $httping_code"
+fi
+
+# 检查 CFST_STM 变量是否为空
+if [[ -n "$CFST_STM" ]]; then
+  CFST_STM="-httping $httping_code $cfcolo"
+fi
+
 if [ "$IP_PR_IP" = "true" ] ; then
   curl -sSf -o ./cf_ddns/pr_ip.txt https://cf.vbar.fun/pr_ip.txt
-  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL  -sl $CFST_SL -p $CFST_P -f ./cf_ddns/pr_ip.txt -o ./cf_ddns/result.csv
+  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL  -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM -f ./cf_ddns/pr_ip.txt -o ./cf_ddns/result.csv
   rm ./cf_ddns/pr_ip.txt
 elif [ "$IP_ADDR" = "ipv6" ] ; then
   #开始优选IPv6
-  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -f ./cf_ddns/ipv6.txt -o ./cf_ddns/result.csv
+  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM -f ./cf_ddns/ipv6.txt -o ./cf_ddns/result.csv
 else
   #开始优选IPv4
-  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -f ./cf_ddns/ip.txt -o ./cf_ddns/result.csv
+  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM -f ./cf_ddns/ip.txt -o ./cf_ddns/result.csv
 fi
 echo "测速完毕";
 
@@ -106,126 +121,130 @@ while [[ ${x} -lt $num ]]; do
   
   # 获取优选后的ip地址 
   ipAddr=$(sed -n "$((x + 2)),1p" ./cf_ddns/result.csv | awk -F, '{print $1}');
-  
-  if [ "$IP_TO_HOSTS" = 1 ]; then
-    echo $ipAddr $CDNhostname >> ./cf_ddns/hosts_new
+  ipSpeed=$(sed -n "$((x + 2)),1p" ./cf_ddns/result.csv | awk -F, '{print $6}');
+  if [ $ipSpeed = "0.00" ]; then
+    echo "第$((x + 1))个---$ipAddr测速为0，跳过更新DNS，检查配置是否能正常测速！";
+  else
+    if [ "$IP_TO_HOSTS" = 1 ]; then
+      echo $ipAddr $CDNhostname >> ./cf_ddns/hosts_new
     # else
-    # echo "未配置hosts"
-  fi
+      # echo "未配置hosts"
+    fi
   
-  if [ "$IP_TO_DNSPOD" = 1 ]; then
-    echo "开始更新第$((x + 1))个---$ipAddr";
+    if [ "$IP_TO_DNSPOD" = 1 ]; then
+      echo "开始更新第$((x + 1))个---$ipAddr";
     
-    # 开始DDNS
-    if [[ $ipAddr =~ $ipv4Regex ]]; then
-      recordType="A";
-    else
-      recordType="AAAA";
-    fi
-
-    # split domain and subdomain by .
-    IFS='.' read -ra arr <<< "$CDNhostname"
-    # count the number of elements in the array
-    len=${#arr[@]}
-
-    # if there is only 1 element, it means the domain is the full domain and subdomain should be "@"
-    if [ $len -eq 1 ]; then
-      domain="$CDNhostname"
-      sub_domain="@"
-    elif [ $len -eq 2 ]; then
-      domain="$CDNhostname"
-      sub_domain="@"
-    else
-      # check if the domain ends with "eu.org"
-      if [ "${arr[$len-2]}.${arr[$len-1]}" = "eu.org" ]; then
-        # get the domain by joining the last three elements with .
-        domain="${arr[$len-3]}.${arr[$len-2]}.${arr[$len-1]}"
-        # get the subdomain by joining all elements except the last three with .
-        if [ $len -eq 3 ]; then
-          sub_domain="@"
-        else
-          sub_domain="$(IFS='.'; echo "${arr[*]:0:$len-3}")"
-        fi
+      # 开始DDNS
+      if [[ $ipAddr =~ $ipv4Regex ]]; then
+        recordType="A";
       else
-        # get the domain by joining the last two elements with .
-        domain="${arr[$len-2]}.${arr[$len-1]}"
-        # get the subdomain by joining all elements except the last two with .
-        sub_domain="$(IFS='.'; echo "${arr[*]:0:$len-2}")"
+        recordType="AAAA";
       fi
-    fi
-    
-    DOMAIN_NAME=$domain
-    SUBDOMAIN=$sub_domain
-    
-    ## DNS新建与更新
-    # call DNSPod API to get the domain ID and record ID
-    RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.List -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN")
 
-    # check if the domain exists
-    STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
-    if [ "$STATUS" == "1" ]; then
-      # extract domain ID and record ID from the API response
-      RECORD_ID=$(echo "$RESPONSE" | jq -r '.records[0].id')
-      #判断返回的line_id是否和设置一致
-      declare -A line_id_dict=(
-              ["默认"]="0"
-              ["国内"]="7=0"
-              ["国外"]="3=0"
-              ["电信"]="10=0"
-              ["联通"]="10=1"
-              ["教育网"]="10=2"
-              ["移动"]="10=3"
-              ["百度"]="90=0"
-              ["谷歌"]="90=1"
-              ["搜搜"]="90=4"
-              ["有道"]="90=2"
-              ["必应"]="90=3"
-              ["搜狗"]="90=5"
-              ["奇虎"]="90=6"
-              ["搜索引擎"]="80=0"
-       )
-
-      CURRENT_RECORD_LINE=$(echo "$RESPONSE" | jq -r '.records[0].line_id')
-
-      for key in "${!line_id_dict[@]}"
-      do
-          if [ "${line_id_dict[$key]}" == "$CURRENT_RECORD_LINE" ]
-          then
-              if [ "$RECORD_LINE" == "$key" ]
-              then
-                  # update DNS record with the current IP address
-                  RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Modify -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&record_id=$RECORD_ID&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
-                  # check if the update was successful
-                  STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
-                  if [ "$STATUS" == "1" ]; then
-                    echo "$CDNhostname更新成功"
-                  else
-                    echo "$CDNhostname更新失败"
-                  fi
-              else
-                  # add DNS record for the domain
-                  RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Create -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
-                  # check if the creation was successful
-                  STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
-                  if [ "$STATUS" == "1" ]; then
-                    echo "$CDNhostname添加成功"
-                  else
-                    echo "$CDNhostname添加失败"
-                  fi
-              fi
-              break
+      # split domain and subdomain by .
+      IFS='.' read -ra arr <<< "$CDNhostname"
+      # count the number of elements in the array
+      len=${#arr[@]}
+  
+      # if there is only 1 element, it means the domain is the full domain and subdomain should be "@"
+      if [ $len -eq 1 ]; then
+        domain="$CDNhostname"
+        sub_domain="@"
+      elif [ $len -eq 2 ]; then
+        domain="$CDNhostname"
+        sub_domain="@"
+      else
+        # check if the domain ends with "eu.org"
+        if [ "${arr[$len-2]}.${arr[$len-1]}" = "eu.org" ]; then
+          # get the domain by joining the last three elements with .
+          domain="${arr[$len-3]}.${arr[$len-2]}.${arr[$len-1]}"
+          # get the subdomain by joining all elements except the last three with .
+          if [ $len -eq 3 ]; then
+            sub_domain="@"
+          else
+            sub_domain="$(IFS='.'; echo "${arr[*]:0:$len-3}")"
           fi
-      done
-    else
-      # add DNS record for the domain
-      RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Create -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
+        else
+          # get the domain by joining the last two elements with .
+          domain="${arr[$len-2]}.${arr[$len-1]}"
+          # get the subdomain by joining all elements except the last two with .
+          sub_domain="$(IFS='.'; echo "${arr[*]:0:$len-2}")"
+        fi
+      fi
+    
+      DOMAIN_NAME=$domain
+      SUBDOMAIN=$sub_domain
+    
+      ## DNS新建与更新
+      # call DNSPod API to get the domain ID and record ID
+      RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.List -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN")
 
-      # check if the creation was successful
+      # check if the domain exists
       STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
       if [ "$STATUS" == "1" ]; then
-        echo "$CDNhostname添加成功"
+        # extract domain ID and record ID from the API response
+        RECORD_ID=$(echo "$RESPONSE" | jq -r '.records[0].id')
+        #判断返回的line_id是否和设置一致
+        declare -A line_id_dict=(
+                ["默认"]="0"
+                ["国内"]="7=0"
+                ["国外"]="3=0"
+                ["电信"]="10=0"
+                ["联通"]="10=1"
+                ["教育网"]="10=2"
+                ["移动"]="10=3"
+                ["百度"]="90=0"
+                ["谷歌"]="90=1"
+                ["搜搜"]="90=4"
+                ["有道"]="90=2"
+                ["必应"]="90=3"
+                ["搜狗"]="90=5"
+                ["奇虎"]="90=6"
+                ["搜索引擎"]="80=0"
+         )
+
+        CURRENT_RECORD_LINE=$(echo "$RESPONSE" | jq -r '.records[0].line_id')
+
+        for key in "${!line_id_dict[@]}"
+        do
+            if [ "${line_id_dict[$key]}" == "$CURRENT_RECORD_LINE" ]
+            then
+                if [ "$RECORD_LINE" == "$key" ]
+                then
+                   # update DNS record with the current IP address
+                    RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Modify -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&record_id=$RECORD_ID&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
+                    # check if the update was successful
+                    STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
+                    if [ "$STATUS" == "1" ]; then
+                      echo "$CDNhostname更新成功"
+                    else
+                      echo "$CDNhostname更新失败"
+                    fi
+                else
+                    # add DNS record for the domain
+                    RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Create -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
+                    # check if the creation was successful
+                    STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
+                    if [ "$STATUS" == "1" ]; then
+                      echo "$CDNhostname添加成功"
+                    else
+                      echo "$CDNhostname添加失败"
+                    fi
+                fi
+                break
+            fi
+        done
       else
-        echo "$CDNhostname添加失败"
+        # add DNS record for the domain
+        RESPONSE=$(curl -sX POST https://dnsapi.cn/Record.Create -d "login_token=$dnspod_token&format=json&domain=$DOMAIN_NAME&sub_domain=$SUBDOMAIN&record_line=$RECORD_LINE&record_type=$recordType" -d "value=$ipAddr")
+
+        # check if the creation was successful
+        STATUS=$(echo "$RESPONSE" | jq -r '.status.code')
+        if [ "$STATUS" == "1" ]; then
+          echo "$CDNhostname添加成功"
+        else
+          echo "$CDNhostname添加失败"
+        fi
       fi
     fi
   fi
