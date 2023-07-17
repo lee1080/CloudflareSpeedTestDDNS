@@ -16,14 +16,17 @@ bash start.sh
 https://hub.docker.com/r/lee1080/cfstddns
 
 ## 更新日志
+### V2.3
+#### 适配XIU2/CloudflareSpeedTest:v2.2.4 | 新增自定义测速地址端口支持
+#### 新增PushPlus推送。
+#### 优化更新规则，测速为0则跳过域名更新。
+
 ### v2.2
 #### 更改文件结构。
 #### 新增了dnspod DNS服务商支持。
 #### 新增了docker版。docker版不能自动停止路由器的科学插件，请将docker配置到没有科学环境的设备使用。
 #### 增加了pushdeer推送、企业微信推送、Server酱、Synology Chat。
 #### 增加了更新到hosts模式
-
-
 
 ### v2.1.1 
 #### 新功能，支持更新优选完毕后推送至TG，再也不怕脚本没有成功运行了。
