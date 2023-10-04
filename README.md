@@ -66,8 +66,7 @@ https://hub.docker.com/r/lee1080/cfstddns
 .tk .ml .ga .cf .gq这几个域名可能存在无法调用CloudflareAPI。
 
 ## 感谢
-* 感谢[XIU2](https://github.com/XIU2)给大家提供了[CloudflareSpeedTest](https://github.com/XIU2/CloudflareSpeedTest)这么方便的优选IP的工具。
-* https://github.com/XIU2/CloudflareSpeedTest
+* 感谢[XIU2](https://github.com/XIU2)给大家提供了[CloudflareSpeedTest](https://github.com/XIU2/CloudflareSpeedTest)这么方便的优选IP的工具。 https://github.com/XIU2/CloudflareSpeedTest
 * 感谢[ip-scanner](https://github.com/ip-scanner)[cloudflare](https://github.com/ip-scanner/cloudflare)项目提供的反代地址。
 * 感谢[CF中转IP发布](https://t.me/cf_push)提供反代地址。
 
