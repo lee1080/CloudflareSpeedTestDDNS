@@ -98,22 +98,22 @@ elif [ "$IP_PR_IP" = "2" ] ; then
   fi
 fi
 
+CFCOLO_PARAM_STRING=
 if [ -z "$CFCOLO" ]; then
     echo "CFCOLO is empty, searching for IP globally"
-    CFCOLO_PARAM_STRING=""
 else
     echo "Searching for IPs in ${CFCOLO}."
     CFCOLO_PARAM_STRING="-cfcolo ${CFCOLO}"
 fi
 
 if [ "$IP_PR_IP" -ne "0" ] ; then
-  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -dt $CFST_DT -tp $CFST_TP -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM CFCOLO_PARAM_STRING -f ./cf_ddns/pr_ip.txt -o ./cf_ddns/result.csv
+  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -dt $CFST_DT -tp $CFST_TP -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM -f ./cf_ddns/pr_ip.txt -o ./cf_ddns/result.csv CFCOLO_PARAM_STRING
 elif [ "$IP_ADDR" = "ipv6" ] ; then
   #开始优选IPv6
-  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -dt $CFST_DT -tp $CFST_TP -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM CFCOLO_PARAM_STRING -f ./cf_ddns/ipv6.txt -o ./cf_ddns/result.csv
+  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -dt $CFST_DT -tp $CFST_TP -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM -f ./cf_ddns/ipv6.txt -o ./cf_ddns/result.csv CFCOLO_PARAM_STRING
 else
   #开始优选IPv4
-  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -dt $CFST_DT -tp $CFST_TP -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM CFCOLO_PARAM_STRING -f ./cf_ddns/ip.txt -o ./cf_ddns/result.csv
+  $CloudflareST $CFST_URL_R -t $CFST_T -n $CFST_N -dn $CFST_DN -tl $CFST_TL -dt $CFST_DT -tp $CFST_TP -tll $CFST_TLL -sl $CFST_SL -p $CFST_P -tlr $CFST_TLR $CFST_STM -f ./cf_ddns/ip.txt -o ./cf_ddns/result.csv CFCOLO_PARAM_STRING
 fi
 echo "测速完毕";
 
