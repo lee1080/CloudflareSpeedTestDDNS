@@ -1,13 +1,13 @@
 #!/bin/bash
 # Default config file
 config_file="config.conf"
-
 # Source the default config file to get all default config
 source "$config_file"
 # Check if --cfg parameter is provided
 for i in "$@"
 do
-@@ -10,12 +11,11 @@ do
+    if [ "$i" == "--cfg" ]
+    then
         # Get the next argument as the config file
         shift
         config_file="$1"
@@ -15,7 +15,8 @@ do
         source "$config_file"
     fi
 done
-
+# remove the result.csv if exists
+rm cf_ddns/result.csv
 source ./cf_ddns/cf_check.sh
 
 case $DNS_PROVIDER in
