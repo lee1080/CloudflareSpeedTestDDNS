@@ -194,7 +194,7 @@ updateDNSRecords() {
       sleep 1
     done
   else
-    echo "CSV 文件$csv_file不存在"
+    echo "CSV文件$csv_file不存在"
   fi
 }
 
