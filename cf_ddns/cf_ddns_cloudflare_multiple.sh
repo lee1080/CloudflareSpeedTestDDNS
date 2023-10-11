@@ -138,7 +138,7 @@ updateDNSRecords() {
           delete_url="$url/$record_id"
           delete_response=$(curl -sm10 -X DELETE "$delete_url" -H "X-Auth-Email: $x_email" -H "X-Auth-Key: $api_key")
           if [[ $(echo "$delete_response" | jq -r '.success') == "true" ]]; then
-            echo "成功删除DNS记录 $(echo "$record" | jq -r '.name')"
+            echo "成功删除DNS记录$(echo "$record" | jq -r '.name')"
           else
             echo "删除DNS记录失败"
           fi
