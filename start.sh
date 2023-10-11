@@ -21,7 +21,7 @@ source ./cf_ddns/cf_check.sh
 
 case $DNS_PROVIDER in
     1)
-        source ./cf_ddns/cf_ddns_cloudflare.sh
+        source ./cf_ddns/cf_ddns_cloudflare_multiple.sh
         ;;
     2)
         source ./cf_ddns/cf_ddns_dnspod.sh
@@ -31,6 +31,7 @@ case $DNS_PROVIDER in
         ;;
 esac
 
+# informlog中不能带空格，否则不能被识别
 source ./cf_ddns/cf_push.sh
 
 exit 0;
